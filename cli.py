@@ -27,17 +27,19 @@ def get_config(config):
 def parse_config(config):
     return (config['username'], base64.b64decode(config['password']))
 
-def get_sprints(sprints, regex):
-    return [regex.search(sprint).group() for sprint in sprints]
+def get_sprints(sprints):
+    sprint_name = re.compile('name=(.+?),')
+    return [sprint_name.search(sprint).group() for sprint in sprints]
 
 def process_issues(data):
     fields = data[0].raw['fields'].keys()
+    fields.pop(fields.index('customfield_10406'))
     processed = []
-    sprint_name_re = re.compile('name=(.+?),')
 
     for issue in data:
         sprint_name_list = issue.fields.customfield_10406
-        sprint_name = get_sprints(sprint_name_list, sprint_name_re) if sprint_name_list else None
+        sprint_name = get_sprints(sprint_name_list) if sprint_name_list else None
+        print sprint_name
 
         row = [
             ('name', issue.key),
@@ -88,7 +90,7 @@ def download_all_data(output, fields):
 
     default_fields = ['customfield_10406', 'status', 'customfield_10143', 'resolutiondate']
     headers = default_fields + list(fields)
-    fields = ', '.join(headers)
+    fields = ','.join(headers)
 
 
     if not path.isfile(CONFIG_FILE):
@@ -98,16 +100,18 @@ def download_all_data(output, fields):
     click.secho("Establishing connection to JIRA server...", fg='green')
     auth_tup = parse_config(get_config(CONFIG_FILE))
     jac = jira.JIRA(options=OPTIONS, basic_auth=auth_tup)
-    click.secho("Downloading", fg='green')
 
+    click.secho("Downloading", fg='green')
     #todo: get this working async.  maybe check pathos?
     dev_issues = jac.search_issues('project = AMDG AND issuetype in (Defect, "Developer Story", Epic) AND sprint in ("DEV")',
                                     maxResults=10,
                                     fields=fields);
 
     writable = process_issues(dev_issues);
-
     click.secho("writing file", fg='green')
+    writer = csv.DictWriter(output, fieldnames=writable[0].keys())
+    writer.writeheader()
+    writer.writerows(writable)
 
     click.secho("Success!", fg='green')
 
