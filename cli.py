@@ -101,14 +101,14 @@ def download_all_data(output, fields):
     auth_tup = parse_config(get_config(CONFIG_FILE))
     jac = jira.JIRA(options=OPTIONS, basic_auth=auth_tup)
 
-    click.secho("Downloading", fg='green')
+    click.secho("Fetching data...", fg='green')
     #todo: get this working async.  maybe check pathos?
     dev_issues = jac.search_issues('project = AMDG AND issuetype in (Defect, "Developer Story", Epic) AND sprint in ("DEV")',
                                     maxResults=10,
                                     fields=fields);
 
     writable = process_issues(dev_issues);
-    click.secho("writing file", fg='green')
+    click.secho("Writing file...", fg='green')
     writer = csv.DictWriter(output, fieldnames=writable[0].keys())
     writer.writeheader()
     writer.writerows(writable)
