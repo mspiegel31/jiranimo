@@ -16,8 +16,7 @@ OPTIONS = {
 }
 
 
-def has_config_file():
-    pass
+
 
 
 def get_config(config):
@@ -42,6 +41,7 @@ def create_profile(username, password):
 
     passwords are encoded and stored on your home directory
     """
+    #todo: check for existing file and ask for overwrite
 
     encoded_password = base64.b64encode(password)
 
@@ -52,7 +52,7 @@ def create_profile(username, password):
 
     with open(CONFIG_FILE, 'w') as f:
         json.dump(payload, f)
-        click.echo("success!  config file written to: {}".format(CONFIG_FILE))
+        click.secho("success!  config file written to: {}".format(CONFIG_FILE), fg='green')
 
 
 
@@ -63,6 +63,10 @@ def download_all_data():
 
     WARNING:  this operation will take several minutes
     """
+
+    if not path.isfile(CONFIG_FILE):
+        click.secho("no config file detected.  please run cli.py create_profile first.", fg='red')
+        return
 
     auth_tup = parse_config(get_config(CONFIG_FILE))
     jac = jira.JIRA(OPTIONS, basic_auth=auth_tup)
