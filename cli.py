@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import jira
 import click
 import json
@@ -5,19 +7,18 @@ import base64
 import os.path as path
 import csv
 import warnings
-import time
 import re
 from collections import OrderedDict
 
 warnings.filterwarnings('ignore')
 
-HOME_DIRECTORY = path.expanduser('~')
-CONFIG_FILE = path.join(HOME_DIRECTORY,'.jira_getter.config.json')
 OPTIONS = {
     'server': 'https://jira-ct.associatesys.local/',
     'verify': False
 }
 
+def get_config():
+    return path.join(path.expanduser('~'), '.jira_getter.config.json')
 
 def parse_config(config_file):
     #todo:  how should this behave when decoding fails?
@@ -75,13 +76,13 @@ def create_profile(username, password):
     encoded_password = base64.b64encode(password)
 
     payload = {
-    'username': username,
-    'password': encoded_password
+        'username': username,
+        'password': encoded_password
     }
 
-    with open(CONFIG_FILE, 'w') as f:
+    with open(get_config(), 'w') as f:
         json.dump(payload, f)
-        click.secho("success!  config file written to: {}".format(CONFIG_FILE), fg='green')
+        click.secho("success!  config file written to: {}".format(get_config()), fg='green')
 
 @cli.command()
 @click.argument('output', type=click.File('wb'))
@@ -97,12 +98,12 @@ def download_all_data(output, fields):
     fields = ','.join(headers)
 
 
-    if not path.isfile(CONFIG_FILE):
+    if not path.isfile(get_config()):
         click.secho("no config file detected.  please run cli.py create_profile first.", fg='red')
         return
 
     click.secho("Establishing connection to JIRA server...", fg='green')
-    auth_tup = parse_config(CONFIG_FILE)
+    auth_tup = parse_config(get_config())
     jac = jira.JIRA(options=OPTIONS, basic_auth=auth_tup)
 
     click.secho("Fetching data...", fg='green')

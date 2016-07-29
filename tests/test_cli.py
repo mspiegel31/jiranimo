@@ -3,10 +3,7 @@ from click.testing import CliRunner
 import cli
 import os.path as path
 from mock import Mock, MagicMock, patch
-
-HOME_DIRECTORY = path.expanduser('~')
-CONFIG_FILE = path.join(HOME_DIRECTORY,'.jira_getter.config.json')
-
+import mock
 
 class TestGetSprints:
 
@@ -31,14 +28,17 @@ class TestGetSprints:
         assert result == expected
 
 class TestDownloadAllData:
-    # mock out config file
-    # mock out jira connection
-    # mock jira issue object
-    # mock file writing;  assert that it happened
-    def test_it_should_exit_if_no_config_is_present(self):
+    @patch('jira.JIRA')
+    @patch('csv.DictWriter')
+    @patch('cli.get_config')
+
+    def test_it_should_exit_if_no_config_is_present(self, mock_get_config, MockDictWriter, MockJira):
         runner = CliRunner()
-        cli.config_file = ''
-        result = runner.invoke(cli.download_all_data, ['mike.csv'])
-        # assert jira context not called
+        cli.get_config = lambda: ''
+
+        result = runner.invoke(cli.download_all_data, ['foo.csv'])
+
         assert 'no config file detected' in result.output
+        assert not cli.jira.JIRA.search_issues.called
+        assert not cli.csv.DictWriter.called
         assert result.exit_code == 0
