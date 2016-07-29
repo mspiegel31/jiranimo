@@ -19,6 +19,8 @@ OPTIONS = {
 }
 
 def get_config(config):
+    """gets a config file off of users hard drive
+    """
     with open(config, 'r') as f:
         data = json.load(f)
 
@@ -28,10 +30,16 @@ def parse_config(config):
     return (config['username'], base64.b64decode(config['password']))
 
 def get_sprints(sprints):
+    """scrapes a string for sprint name
+    """
     sprint_name = re.compile('name=(.+?),')
-    return [sprint_name.search(sprint).group() for sprint in sprints]
+    for sprint in sprints:
+        print sprint_name.findall(sprint)
+    return [sprint_name.findall(sprint) for sprint in sprints]
 
 def process_issues(data):
+    """fiddly processing logic for different field types
+    """
     fields = data[0].raw['fields'].keys()
     fields.pop(fields.index('customfield_10406'))
     processed = []
