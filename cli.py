@@ -18,21 +18,17 @@ OPTIONS = {
     'verify': False
 }
 
-def get_config(config):
-    """gets a config file off of users hard drive
-    """
-    with open(config, 'r') as f:
-        data = json.load(f)
 
-    return data
-
-def parse_config(config):
+def parse_config(config_file):
+    #todo:  how should this behave when decoding fails?
+    with open(config_file, 'r') as f:
+        config = json.load(f)
     return (config['username'], base64.b64decode(config['password']))
 
 def get_sprints(sprints):
     """scrapes a string for sprint name
     """
-    sprint_name = re.compile('name=(.+?),')
+    sprint_name = re.compile('name=(.+?)\s*,')
     for sprint in sprints:
         print sprint_name.findall(sprint)
     return [sprint_name.findall(sprint) for sprint in sprints]
@@ -106,7 +102,7 @@ def download_all_data(output, fields):
         return
 
     click.secho("Establishing connection to JIRA server...", fg='green')
-    auth_tup = parse_config(get_config(CONFIG_FILE))
+    auth_tup = parse_config(CONFIG_FILE)
     jac = jira.JIRA(options=OPTIONS, basic_auth=auth_tup)
 
     click.secho("Fetching data...", fg='green')
@@ -122,6 +118,10 @@ def download_all_data(output, fields):
     writer.writerows(writable)
 
     click.secho("Success!", fg='green')
+
+
+def get_data_for_sprint():
+    pass
 
 if __name__ == '__main__':
     cli()
