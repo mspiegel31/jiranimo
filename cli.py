@@ -82,7 +82,7 @@ def create_profile(username, password):
 
     with open(get_config(), 'w') as f:
         json.dump(payload, f)
-        click.secho("success!  config file written to: {}".format(get_config()), fg='green')
+        click.secho("Success!  Config file written to: {}".format(get_config()), fg='green')
 
 @cli.command()
 @click.argument('output', type=click.File('wb'))
@@ -106,6 +106,7 @@ def download_all_data(output, fields):
     auth_tup = parse_config(get_config())
     jac = jira.JIRA(options=OPTIONS, basic_auth=auth_tup)
 
+    print
     click.secho("Fetching data...", fg='green')
     #todo: get this working async.  maybe check pathos?
     dev_issues = jac.search_issues('project = AMDG AND issuetype in (Defect, "Developer Story", Epic) AND sprint in ("DEV")',
