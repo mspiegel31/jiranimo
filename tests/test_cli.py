@@ -2,6 +2,7 @@ import click
 from click.testing import CliRunner
 import cli
 import os.path as path
+import pytest
 from mock import Mock, MagicMock, patch
 import mock
 
@@ -48,12 +49,13 @@ class TestDownloadAllData:
     @patch('cli.path.isfile')
     @patch('cli.jira.JIRA')
     def test_it_should_request_a_default_set_of_fields(self, MockJira, mock_is_file, mock_parse_config, MockDictWriter, mock_process_issues):
-        #make sure these aren't writing csv's to the filesystem!
         mock_is_file.return_value = True
         mock_parse_config.return_value = ('foo', 'bar')
         mock_jira_instance = MockJira.return_value
         default_fields = ','.join(['customfield_10406', 'status', 'customfield_10143', 'resolutiondate'])
+
         runner = CliRunner()
         result = runner.invoke(cli.download_all_data, ['foo.csv'])
-        print result.output
+
         assert mock_jira_instance.search_issues.called
+        mock_jira_instance.search_issues.assert_called_with('project = AMDG AND issuetype in (Defect, "Developer Story", Epic) AND sprint in ("DEV")', fields=default_fields, maxResults=10)
