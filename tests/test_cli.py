@@ -6,7 +6,7 @@ import pytest
 from mock import Mock, MagicMock, patch
 import mock
 
-
+@pytest.mark.skip('pending deletion')
 class TestGetSprints:
 
     def test_it_should_extract_multiple_names(self):
@@ -56,7 +56,8 @@ class TestDownloadAllData:
         mock_jira_instance = MockJira.return_value
         mock_dictwriter_instance = MockDictWriter.return_value
         default_fields = ['customfield_10406', 'status',
-                          'customfield_10143', 'resolutiondate']
+                          'customfield_10143', 'resolutiondate',
+                          'aggregatetimespent', 'aggregatetimeoriginalestimate']
         expected_fields = ','.join(default_fields)
 
         runner = CliRunner()
@@ -79,7 +80,8 @@ class TestDownloadAllData:
         mock_jira_instance = MockJira.return_value
         mock_dictwriter_instance = MockDictWriter.return_value
         default_fields = ['customfield_10406', 'status',
-                          'customfield_10143', 'resolutiondate']
+                          'customfield_10143', 'resolutiondate',
+                          'aggregatetimespent', 'aggregatetimeoriginalestimate']
         additional_fields = ['1', '2', '3']
 
         expected_fields = ','.join(default_fields + additional_fields)
