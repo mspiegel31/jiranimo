@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 
-import jira
-import click
-import json
 import base64
-import os.path as path
 import csv
-import warnings
+import json
+import os.path as path
 import re
-import requests
+import warnings
 from collections import OrderedDict
+
+import click
+import jira
+import requests
+
+from lib import decorators, utils
 from lib.issuecontainer import IssueContainer
-from lib import decorators
-from lib import utils
 
 warnings.filterwarnings('ignore')
 AMDG_BOARD_ID = 2164
@@ -64,8 +65,6 @@ def process_issues(data):
     return processed
 
 
-
-
 @click.group()
 def cli():
     """Utilities for getting data out of JIRA"""
@@ -82,7 +81,7 @@ def create_profile(username, password):
     """
     # todo: check for existing file and ask for overwrite
 
-    encoded_password = base64.b64encode(password)
+    encoded_password = base64.b64encode(password.encode()).decode()
 
     payload = {
         'username': username,
@@ -117,7 +116,8 @@ def get_data_for_sprint(type, sprint_number, output, filetype):
     print(sprint_url)
     response = requests.get(sprint_url, auth=auth_tup, verify=False)
     if not response.ok:
-        click.secho('connection refused with status_code {}: {} '.format(response.status_code, response.reason), fg='red')
+        click.secho('connection refused with status_code {}: {} '.format(
+            response.status_code, response.reason), fg='red')
         return
 
     click.secho('Processing...', fg='green')

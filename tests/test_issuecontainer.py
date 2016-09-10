@@ -24,5 +24,5 @@ class TestIssueContainer:
         issue_container = IssueContainer(mockIssue)
         for field in issue_container._fields:
             value = getattr(issue_container, field)
-            print field, value
+            print(field, value)
             assert value
