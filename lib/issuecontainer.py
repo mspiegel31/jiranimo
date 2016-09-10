@@ -16,6 +16,7 @@ class IssueContainer(BaseIssueContainer):
     """provides intialization for BaseIssueContainer"""
     __slots__ = ()
 
+
     def __new__(cls, issue):
         fields = issue['fields']
         dictionary = {

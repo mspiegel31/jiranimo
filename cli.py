@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import jira
 import click
@@ -11,6 +11,8 @@ import re
 import requests
 from collections import OrderedDict
 from lib.issuecontainer import IssueContainer
+from lib import decorators
+from lib import utils
 
 warnings.filterwarnings('ignore')
 AMDG_BOARD_ID = 2164
@@ -24,17 +26,6 @@ issue_path = '/rest/agile/1.0/board/{boardId}/sprint/{sprintId}/issue'
 issue_url = OPTIONS['server'] + issue_path
 
 
-def get_config():
-    return path.join(path.expanduser('~'), '.jira_getter.config.json')
-
-
-def parse_config(config_file):
-    # todo:  how should this behave when decoding fails?
-    with open(config_file, 'r') as f:
-        config = json.load(f)
-    return (config['username'], base64.b64decode(config['password']))
-
-
 def get_sprints(sprints):
     """scrapes a string for sprint name
     """
@@ -45,7 +36,7 @@ def get_sprints(sprints):
 def process_issues(data):
     """fiddly processing logic for different field types
     """
-    fields = data[0].raw['fields'].keys()
+    fields = list(data[0].raw['fields'].keys())
     fields.pop(fields.index('customfield_10406'))
     processed = []
 
@@ -73,9 +64,6 @@ def process_issues(data):
     return processed
 
 
-def create_filename(name, filetype):
-    name = name.replace('.' + filetype, '')
-    return '.'.join([name, filetype])
 
 
 @click.group()
@@ -101,10 +89,10 @@ def create_profile(username, password):
         'password': encoded_password
     }
 
-    with open(get_config(), 'w') as f:
+    with open(utils.get_config(), 'w') as f:
         json.dump(payload, f)
         click.secho("Success!  Config file written to: {}".format(
-            get_config()), fg='green')
+            utils.get_config()), fg='green')
 
 
 @cli.command()
@@ -112,31 +100,24 @@ def create_profile(username, password):
 @click.argument('sprint_number', type=int)
 @click.argument('output', type=click.Path(writable=False, dir_okay=False))
 @click.option('--filetype', default='json', type=click.Choice(['csv', 'json']), help="Specify filetype")
+@decorators.check_for_config_file
 def get_data_for_sprint(type, sprint_number, output, filetype):
     """Get a snapshot of the issue status for the given sprint"""
-    # todo: make this a decorator
-    if not path.isfile(get_config()):
-        click.secho(
-            "No config file detected.  please run cli.py create_profile first.", fg='red')
-        return
 
-    auth_tup = parse_config(get_config())
+    auth_tup = utils.parse_config(utils.get_config())
     click.secho("Establishing connection to JIRA server...", fg='green')
     gh = jira.client.GreenHopper(OPTIONS)
 
     click.secho("Fetching data...", fg='green')
     sprints = gh.sprints(AMDG_BOARD_ID)
-    requested_sprint_id = [sprint for sprint in sprints if str(
-        sprint_number) in sprint.name and type.upper() in sprint.name].pop().id
-    sprint_url = issue_url.format(
-        boardId=AMDG_BOARD_ID, sprintId=requested_sprint_id)
+    requested_sprint_id = [sprint for sprint in sprints if str(sprint_number) in sprint.name and type.upper() in sprint.name].pop().id
+    sprint_url = issue_url.format(boardId=AMDG_BOARD_ID, sprintId=requested_sprint_id)
 
     # todo:  logging/error for when request fails
-    print sprint_url
+    print(sprint_url)
     response = requests.get(sprint_url, auth=auth_tup, verify=False)
     if not response.ok:
-        click.secho('connection refused with status_code {}: {} '.format(
-            response.status_code, response.reason), fg='red')
+        click.secho('connection refused with status_code {}: {} '.format(response.status_code, response.reason), fg='red')
         return
 
     click.secho('Processing...', fg='green')
@@ -151,7 +132,7 @@ def get_data_for_sprint(type, sprint_number, output, filetype):
         data.append(issue_data)
 
     click.secho("Writing file...", fg='green')
-    filename = create_filename(output, filetype)
+    filename = utils.create_filename(output, filetype)
     with open(filename, 'wb') as f:
         json.dump(data, f, indent=2)
 
@@ -162,6 +143,7 @@ def get_data_for_sprint(type, sprint_number, output, filetype):
 @click.argument('output', type=click.Path(writable=False, dir_okay=False))
 @click.argument('fields', nargs=-1)
 @click.option('--filetype', default='csv', type=click.Choice(['csv', 'json']), help="Specify filetype")
+@decorators.check_for_config_file
 def download_all_data(output, fields, filetype):
     """downloads all data from JIRA
 
@@ -174,13 +156,13 @@ def download_all_data(output, fields, filetype):
     headers = default_fields + list(fields)
     fields = ','.join(headers)
 
-    if not path.isfile(get_config()):
+    if not path.isfile(utils.get_config()):
         click.secho(
             "no config file detected.  please run cli.py create_profile first.", fg='red')
         return
 
     click.secho("Establishing connection to JIRA server...", fg='green')
-    auth_tup = parse_config(get_config())
+    auth_tup = utils.parse_config(utils.get_config())
     jac = jira.JIRA(options=OPTIONS, basic_auth=auth_tup)
 
     click.secho("Fetching data...", fg='green')
@@ -194,10 +176,10 @@ def download_all_data(output, fields, filetype):
 
     click.secho("Writing file...", fg='green')
 
-    filename = create_filename(output, filetype)
+    filename = utils.create_filename(output, filetype)
     if filetype == 'csv':
         with open(filename, 'wb') as f:
-            writer = csv.DictWriter(f, fieldnames=writable[0].keys())
+            writer = csv.DictWriter(f, fieldnames=list(writable[0].keys()))
             writer.writeheader()
             writer.writerows(writable)
 
