@@ -3,8 +3,8 @@ from click.testing import CliRunner
 import cli
 import os.path as path
 import pytest
-from mock import Mock, MagicMock, patch
-import mock
+from unittest.mock import Mock, MagicMock, patch
+import unittest.mock as mock
 
 @pytest.mark.skip('pending deletion')
 class TestGetSprints:

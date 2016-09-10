@@ -1,4 +1,8 @@
 from collections import namedtuple
+def format_time(number):
+    return number / 60.0**2
+
+
 BaseIssueContainer = namedtuple('IssueContainer', [
                             'raw',
                             'key',
@@ -12,10 +16,10 @@ BaseIssueContainer = namedtuple('IssueContainer', [
                             'total_time_spent',
                             'story_points'])
 
+
 class IssueContainer(BaseIssueContainer):
     """provides intialization for BaseIssueContainer"""
     __slots__ = ()
-
 
     def __new__(cls, issue):
         fields = issue['fields']
@@ -27,9 +31,9 @@ class IssueContainer(BaseIssueContainer):
             'summary': fields.get('summary'),
             'status': fields.get('status').get('name') if fields.get('status') else None,
             'resolution_date': fields.get('resolution_date'),
-            'original_estimate': fields.get('timeestimate'),
-            'time_spent': fields.get('timespent'),
-            'total_time_spent': fields.get('aggregatetimespent'),
+            'original_estimate': format_time(fields.get('timeestimate')),
+            'time_spent': format_time(fields.get('timespent')),
+            'total_time_spent': format_time(fields.get('aggregatetimespent')),
             'story_points': fields.get('customfield_10143')
         }
         return super(IssueContainer, cls).__new__(cls, **dictionary)

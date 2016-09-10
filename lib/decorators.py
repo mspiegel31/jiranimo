@@ -4,14 +4,6 @@ import sys
 from lib import utils
 from functools import wraps
 
-
-def format_time(fn):
-    @wraps(fn)
-    def wrapper(*args, **kwarg):
-        return fn(*args) / 60.0**2
-    return wrapper
-
-
 def check_for_config_file(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
