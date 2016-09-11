@@ -4,7 +4,7 @@ from functools import wraps
 
 import click
 
-from lib import utils
+from jiranimo import utils
 
 
 def check_for_config_file(fn):

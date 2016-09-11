@@ -14,8 +14,8 @@ import click
 import jira
 import requests
 
-from jiranimo.lib import decorators, utils
-from jiranimo.lib.issuecontainer import IssueContainer
+from jiranimo import decorators, utils
+from jiranimo.issuecontainer import IssueContainer
 
 warnings.filterwarnings('ignore')
 AMDG_BOARD_ID = 2164

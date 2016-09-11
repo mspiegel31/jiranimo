@@ -10,6 +10,4 @@ setup(name='jiranimo',
       install_requires=[
           'Click',
           'jira',
-      ],
-
-      )
+      ])

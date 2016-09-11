@@ -6,7 +6,7 @@ import click
 import pytest
 from click.testing import CliRunner
 
-from jiranimo import cli
+from jiranimo.scripts import cli
 
 
 @pytest.mark.skip('pending deletion')
