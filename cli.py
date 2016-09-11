@@ -25,7 +25,7 @@ OPTIONS = {
 
 issue_path = '/rest/agile/1.0/board/{boardId}/sprint/{sprintId}/issue'
 issue_url = OPTIONS['server'] + issue_path
-
+fields = ','.join(IssueContainer.field_mappings.values())
 
 def get_sprints(sprints):
     """scrapes a string for sprint name
@@ -103,29 +103,24 @@ def create_profile(username, password):
 def get_data_for_sprint(type, sprint_number, output, filetype):
     """Get a snapshot of the issue status for the given sprint"""
 
-    auth_tup = utils.parse_config(utils.get_config())
     click.secho("Establishing connection to JIRA server...", fg='green')
+    auth_tup = utils.parse_config(utils.get_config())
     gh = jira.client.GreenHopper(OPTIONS)
+    jac = jira.JIRA(options=OPTIONS, basic_auth=auth_tup)
 
-    click.secho("Fetching data...", fg='green')
     sprints = gh.sprints(AMDG_BOARD_ID)
-    requested_sprint_id = [sprint for sprint in sprints if str(sprint_number) in sprint.name and type.upper() in sprint.name].pop().id
-    sprint_url = issue_url.format(boardId=AMDG_BOARD_ID, sprintId=requested_sprint_id)
+    requested_sprint = [sprint for sprint in sprints if str(sprint_number) in sprint.name and type.upper() in sprint.name].pop()
+    click.secho("Fetching data for {}".format(requested_sprint.name), fg='green')
 
     # todo:  logging/error for when request fails
-    print(sprint_url)
-    response = requests.get(sprint_url, auth=auth_tup, verify=False)
-    if not response.ok:
-        click.secho('connection refused with status_code {}: {} '.format(
-            response.status_code, response.reason), fg='red')
-        return
-
     click.secho('Processing...', fg='green')
-    sprint_data = response.json()
+    sprint_data = jac.search_issues('project = AMDG and sprint = {sprintId}'.format(sprintId=requested_sprint.id),
+                                   maxResults=100,
+                                   fields=fields)
 
     data = []
-    for issue in sprint_data['issues']:
-        issue_data = IssueContainer(issue)._asdict()
+    for issue in sprint_data:
+        issue_data = IssueContainer(issue.raw)._asdict()
         issue_data.pop('raw')
         issue_data['sprint'] = sprint_number
         issue_data['type'] = type
@@ -133,7 +128,7 @@ def get_data_for_sprint(type, sprint_number, output, filetype):
 
     click.secho("Writing file...", fg='green')
     filename = utils.create_filename(output, filetype)
-    with open(filename, 'wb') as f:
+    with open(filename, 'w') as f:
         json.dump(data, f, indent=2)
 
     click.secho("Success!", fg='green')

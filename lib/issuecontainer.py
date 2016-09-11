@@ -1,25 +1,29 @@
-from collections import namedtuple
+from collections import OrderedDict, namedtuple
+
+field_mappings = OrderedDict([
+    ('assignee', 'assignee'),
+    ('summary', 'summary'),
+    ('status', 'status'),
+    ('resolution_date', 'resolution_date'),
+    ('original_estimate', 'timeestimate'),
+    ('time_spent', 'timespent'),
+    ('total_time_spent', 'aggregatetimespent'),
+    ('story_points', 'customfield_10143'),
+    ('work_ratio', 'workratio'),
+    ('num_subtasks', 'subtasks'),
+
+])
+
+
 def format_time(number):
-    return number / 60.0**2
+    if number:
+        return number / 60**2
 
 
-BaseIssueContainer = namedtuple('IssueContainer', [
-                            'raw',
-                            'key',
-                            'url',
-                            'assignee',
-                            'summary',
-                            'status',
-                            'resolution_date',
-                            'original_estimate',
-                            'time_spent',
-                            'total_time_spent',
-                            'story_points'])
-
-
-class IssueContainer(BaseIssueContainer):
-    """provides intialization for BaseIssueContainer"""
+class IssueContainer(namedtuple('BaseIssueContainer', ['raw', 'key', 'url'] + list(field_mappings.keys()))):
+    """Lightweight processing for Jira data"""
     __slots__ = ()
+    field_mappings = field_mappings
 
     def __new__(cls, issue):
         fields = issue['fields']
@@ -34,6 +38,9 @@ class IssueContainer(BaseIssueContainer):
             'original_estimate': format_time(fields.get('timeestimate')),
             'time_spent': format_time(fields.get('timespent')),
             'total_time_spent': format_time(fields.get('aggregatetimespent')),
-            'story_points': fields.get('customfield_10143')
+            'story_points': fields.get('customfield_10143'),
+            'work_ratio': fields.get('workratio'),
+            'num_subtasks': len(fields.get('subtasks')) if fields.get('subtasks') else 0,
+
         }
         return super(IssueContainer, cls).__new__(cls, **dictionary)
