@@ -38,6 +38,11 @@ def profile():
     pass
 
 
+@cli.group()
+def get_data():
+    """Get you some jira data"""
+    pass
+
 @profile.command()
 @click.option('--username', prompt=True)
 @click.password_option()
@@ -67,13 +72,13 @@ def delete():
     click.secho('not yet implemented', fg='red')
 
 
-@cli.command()
+@get_data.command()
 @click.argument('type', type=click.Choice(['dev', 'qa', 'hta']))
 @click.argument('sprint_number', type=int)
 @click.argument('output', type=click.Path(writable=False, dir_okay=False))
 @click.option('--filetype', default='json', type=click.Choice(['csv', 'json']), help="Specify filetype")
 @decorators.check_for_config_file
-def get_data_for_sprint(type, sprint_number, output, filetype):
+def sprint(type, sprint_number, output, filetype):
     """Get a snapshot of the issue status for the given sprint"""
 
     #todo make this a function/decorator
