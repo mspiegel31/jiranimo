@@ -1,5 +1,5 @@
 import pytest
-from lib.issuecontainer import IssueContainer
+from jiranimo.lib.issuecontainer import IssueContainer
 
 @pytest.fixture
 def mockIssue():

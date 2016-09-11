@@ -1,35 +1,15 @@
-import click
-from click.testing import CliRunner
-import cli
 import os.path as path
-import pytest
-from unittest.mock import Mock, MagicMock, patch
 import unittest.mock as mock
+from unittest.mock import MagicMock, Mock, patch
+
+import click
+import pytest
+from click.testing import CliRunner
+
+from jiranimo import cli
+
 
 @pytest.mark.skip('pending deletion')
-class TestGetSprints:
-q
-    def test_it_should_extract_multiple_names(self):
-        test_data = ['name=abc, name=qqq,']
-        expected = [['abc', 'qqq']]
-        result = cli.get_sprints(test_data)
-
-        assert result == expected
-
-    def test_it_should_extract_name_within_string(self):
-        test_data = ['asdasdasdasdasdasdasdadname=qqq,asdasdasdasdasdasdads']
-        expected = [['qqq']]
-        result = cli.get_sprints(test_data)
-
-        assert result == expected
-
-    def test_it_should_strip_trailing_whitespaces(self):
-        test_data = ['name=requested name    ,']
-        expected = [['requested name']]
-        result = cli.get_sprints(test_data)
-        assert result == expected
-
-
 class TestDownloadAllData:
 
     @patch('jira.JIRA')
@@ -94,8 +74,3 @@ class TestDownloadAllData:
         mock_jira_instance.search_issues.assert_called_with(
             'project = AMDG AND issuetype in (Defect, "Developer Story", Epic) AND sprint in ("DEV")', fields=expected_fields, maxResults=10)
         assert mock_dictwriter_instance.writerows.called
-
-
-class TestProcessIssues:
-    # todo: make fixture data for these tests
-    pass
