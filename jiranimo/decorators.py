@@ -10,7 +10,7 @@ from jiranimo import utils
 def check_for_config_file(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        if not os.path.isfile(utils.get_config()):
+        if not os.path.isfile(utils.get_config_path()):
             click.secho(
                 "No config file detected.  please run cli.py create_profile first.", fg='red')
             sys.exit(1)

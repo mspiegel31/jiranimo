@@ -7,7 +7,7 @@ def create_filename(name, filetype):
     return '.'.join([name, filetype])
 
 
-def get_config():
+def get_config_path():
     return os.path.join(os.path.expanduser('~'), '.jira_getter.config.json')
 
 def filter_sprints(sprint_list, num, type):

@@ -60,10 +60,10 @@ def create(username, password):
         'username': username,
     }
 
-    with open(utils.get_config(), 'w') as f:
+    with open(utils.get_config_path(), 'w') as f:
         json.dump(payload, f)
         click.secho("Success!  Config file written to: {}".format(
-            utils.get_config()), fg='green')
+            utils.get_config_path()), fg='green')
 
 
 @profile.command()
@@ -72,10 +72,10 @@ def delete():
     prompt = click.style('This will remove login credentials from system keychain.  Do you want to continue?', fg='red')
     confirm = click.confirm(prompt, abort=True)
     if confirm:
-        username = utils.parse_config(utils.get_config())[0]
+        username = utils.parse_config(utils.get_config_path())[0]
         keyring.delete_password('system', username)
-        os.remove(utils.get_config())
-        click.secho("removed config file at {}".format(utils.get_config()), fg='green')
+        os.remove(utils.get_config_path())
+        click.secho("removed config file at {}".format(utils.get_config_path()), fg='green')
 
 
 
@@ -90,7 +90,7 @@ def sprint(type, sprint_number, output, filetype):
 
     #todo make this a function/decorator
     click.secho("Establishing connection to JIRA server...", fg='green')
-    auth_tup = utils.parse_config(utils.get_config())
+    auth_tup = utils.parse_config(utils.get_config_path())
     gh = jira.client.GreenHopper(OPTIONS)
     jac = jira.JIRA(options=OPTIONS, basic_auth=auth_tup)
 
