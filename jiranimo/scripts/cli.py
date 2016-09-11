@@ -1,13 +1,13 @@
-#!/usr/bin/env python3
-
 import base64
 import csv
 import datetime
 import json
 import os.path as path
+import os
 import warnings
 from collections import OrderedDict
 import sys
+import keyring
 
 import click
 import jira
@@ -16,8 +16,9 @@ from jiranimo import decorators, utils
 from jiranimo.issuecontainer import IssueContainer
 
 warnings.filterwarnings('ignore')
-AMDG_BOARD_ID = 2164
 
+# configs
+AMDG_BOARD_ID = 2164
 OPTIONS = {
     'server': 'https://jira-ct.associatesys.local',
     'verify': False
@@ -49,15 +50,14 @@ def get_data():
 def create(username, password):
     """encodes and serializes JIRA login credentials
 
-    passwords are encoded and stored on your home directory
+    passwords are stored on your system keychain
     """
     # todo: check for existing file and ask for overwrite
 
-    encoded_password = base64.b64encode(password.encode()).decode()
-
+    keyring.set_password('system', username, password)
+    click.secho('Credentials stored in keychain')
     payload = {
         'username': username,
-        'password': encoded_password
     }
 
     with open(utils.get_config(), 'w') as f:
@@ -69,7 +69,14 @@ def create(username, password):
 @profile.command()
 def delete():
     """delete login credentials"""
-    click.secho('not yet implemented', fg='red')
+    prompt = click.style('This will remove login credentials from system keychain.  Do you want to continue?', fg='red')
+    confirm = click.confirm(prompt, abort=True)
+    if confirm:
+        username = utils.parse_config(utils.get_config())[0]
+        keyring.delete_password('system', username)
+        os.remove(utils.get_config())
+        click.secho("removed config file at {}".format(utils.get_config()), fg='green')
+
 
 
 @get_data.command()

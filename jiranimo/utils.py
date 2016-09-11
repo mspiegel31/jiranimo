@@ -1,7 +1,6 @@
-import base64
 import json
 import os
-
+import keyring
 
 def create_filename(name, filetype):
     name = name.replace('.' + filetype, '')
@@ -22,4 +21,5 @@ def parse_config(config_file):
     with open(config_file, 'r') as f:
         config = json.load(f)
 
-    return (config['username'], base64.b64decode(config['password']).decode())
+    password = keyring.get_password('system', config['username'])
+    return (config['username'], password)

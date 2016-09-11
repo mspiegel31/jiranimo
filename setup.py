@@ -8,8 +8,9 @@ setup(name='jiranimo',
       license='MIT',
       packages=find_packages(),
       install_requires=[
-          'Click',
+          'click',
           'jira',
+          'keyring'
       ],
       entry_points='''
         [console_scripts]
