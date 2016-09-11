@@ -27,54 +27,21 @@ issue_path = '/rest/agile/1.0/board/{boardId}/sprint/{sprintId}/issue'
 issue_url = OPTIONS['server'] + issue_path
 fields = ','.join(IssueContainer.field_mappings.values())
 
-def get_sprints(sprints):
-    """scrapes a string for sprint name
-    """
-    sprint_name = re.compile('name=(.+?)\s*,')
-    return [sprint_name.search(sprint).group(1) for sprint in sprints]
-
-
-def process_issues(data):
-    """fiddly processing logic for different field types
-    """
-    fields = list(data[0].raw['fields'].keys())
-    fields.pop(fields.index('customfield_10406'))
-    processed = []
-
-    for issue in data:
-        sprint_name_list = issue.fields.customfield_10406
-        sprint_name = get_sprints(
-            sprint_name_list) if sprint_name_list else None
-
-        row = [
-            ('name', issue.key),
-            ('sprint', sprint_name),
-        ]
-
-        for field in fields:
-            if field == 'status':
-                row.append((field, issue.raw['fields'].get(field)['name']))
-            elif 'time' in field:
-                row.append((field, issue.raw['fields'].get(
-                    field) / 60.0**2 if issue.raw['fields'].get(field) else 0))
-            else:
-                row.append((field, issue.raw['fields'].get(field)))
-
-        processed.append(OrderedDict(row))
-
-    return processed
-
-
 @click.group()
 def cli():
     """Utilities for getting data out of JIRA"""
     pass
 
+@cli.group()
+def profile():
+    """options for managing login credentials"""
+    pass
 
-@cli.command()
+
+@profile.command()
 @click.option('--username', prompt=True)
 @click.password_option()
-def create_profile(username, password):
+def create(username, password):
     """encodes and serializes JIRA login credentials
 
     passwords are encoded and stored on your home directory
@@ -93,6 +60,10 @@ def create_profile(username, password):
         click.secho("Success!  Config file written to: {}".format(
             utils.get_config()), fg='green')
 
+@profile.command()
+def delete():
+    """delete login credentials"""
+    click.secho('not yet implemented', fg='red')
 
 @cli.command()
 @click.argument('type', type=click.Choice(['dev', 'qa', 'hta']))
@@ -128,62 +99,17 @@ def get_data_for_sprint(type, sprint_number, output, filetype):
 
     click.secho("Writing file...", fg='green')
     filename = utils.create_filename(output, filetype)
-    with open(filename, 'w') as f:
-        json.dump(data, f, indent=2)
-
-    click.secho("Success!", fg='green')
-
-
-@cli.command()
-@click.argument('output', type=click.Path(writable=False, dir_okay=False))
-@click.argument('fields', nargs=-1)
-@click.option('--filetype', default='csv', type=click.Choice(['csv', 'json']), help="Specify filetype")
-@decorators.check_for_config_file
-def download_all_data(output, fields, filetype):
-    """downloads all data from JIRA
-
-    WARNING:  this operation will take several minutes
-    """
-
-    default_fields = ['customfield_10406', 'status',
-                      'customfield_10143', 'resolutiondate',
-                      'aggregatetimespent', 'aggregatetimeoriginalestimate']
-    headers = default_fields + list(fields)
-    fields = ','.join(headers)
-
-    if not path.isfile(utils.get_config()):
-        click.secho(
-            "no config file detected.  please run cli.py create_profile first.", fg='red')
-        return
-
-    click.secho("Establishing connection to JIRA server...", fg='green')
-    auth_tup = utils.parse_config(utils.get_config())
-    jac = jira.JIRA(options=OPTIONS, basic_auth=auth_tup)
-
-    click.secho("Fetching data...", fg='green')
-
-    # todo: get this working async.  maybe check pathos?
-    dev_issues = jac.search_issues('project = AMDG AND issuetype in (Defect, "Developer Story", Epic) AND sprint in ("DEV")',
-                                   maxResults=10,
-                                   fields=fields)
-
-    writable = process_issues(dev_issues)
-
-    click.secho("Writing file...", fg='green')
-
-    filename = utils.create_filename(output, filetype)
     if filetype == 'csv':
-        with open(filename, 'wb') as f:
-            writer = csv.DictWriter(f, fieldnames=list(writable[0].keys()))
+        with open(filename, 'w') as f:
+            writer = csv.DictWriter(f, fieldnames=list(data[0].keys()))
             writer.writeheader()
-            writer.writerows(writable)
+            writer.writerows(data)
 
     elif filetype == 'json':
-        with open(filename, 'wb') as f:
-            json.dump(writable, f, indent=2)
+        with open(filename, 'w') as f:
+            json.dump(data, f, indent=2)
 
     click.secho("Success!", fg='green')
-
 
 if __name__ == '__main__':
     cli()

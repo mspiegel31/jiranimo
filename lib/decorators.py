@@ -1,8 +1,11 @@
 import os
-import click
 import sys
-from lib import utils
 from functools import wraps
+
+import click
+
+from lib import utils
+
 
 def check_for_config_file(fn):
     @wraps(fn)
@@ -15,11 +18,10 @@ def check_for_config_file(fn):
     return wrapper
 
 
-def time(fn):
-    """Times given function"""
-    pass
-
-
 def write(fn):
     """writes output of function """
+    pass
+
+def time(fn):
+    """Times given function"""
     pass
