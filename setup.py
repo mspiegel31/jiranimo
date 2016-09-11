@@ -10,4 +10,9 @@ setup(name='jiranimo',
       install_requires=[
           'Click',
           'jira',
-      ])
+      ],
+      entry_points='''
+        [console_scripts]
+        jiranimo=jiranimo.scripts.cli:cli
+        ''',
+      )

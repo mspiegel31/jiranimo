@@ -5,14 +5,12 @@ import csv
 import datetime
 import json
 import os.path as path
-import re
 import warnings
 from collections import OrderedDict
 import sys
 
 import click
 import jira
-import requests
 
 from jiranimo import decorators, utils
 from jiranimo.issuecontainer import IssueContainer
