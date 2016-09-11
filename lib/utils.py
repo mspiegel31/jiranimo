@@ -11,6 +11,11 @@ def create_filename(name, filetype):
 def get_config():
     return os.path.join(os.path.expanduser('~'), '.jira_getter.config.json')
 
+def filter_sprints(sprint_list, num, type):
+    template = 'Sprint {id} - {type}'
+    sprint_query = template.format(id=num, type=type)
+    requested_sprint = [sprint for sprint in sprint_list if sprint_query.lower() in sprint.name.lower()]
+    return requested_sprint.pop() if requested_sprint else None
 
 def parse_config(config_file):
     # todo:  how should this behave when decoding fails?

@@ -11,7 +11,6 @@ field_mappings = OrderedDict([
     ('story_points', 'customfield_10143'),
     ('work_ratio', 'workratio'),
     ('num_subtasks', 'subtasks'),
-
 ])
 
 

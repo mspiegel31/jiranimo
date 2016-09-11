@@ -2,11 +2,13 @@
 
 import base64
 import csv
+import datetime
 import json
 import os.path as path
 import re
 import warnings
 from collections import OrderedDict
+import sys
 
 import click
 import jira
@@ -23,14 +25,14 @@ OPTIONS = {
     'verify': False
 }
 
-issue_path = '/rest/agile/1.0/board/{boardId}/sprint/{sprintId}/issue'
-issue_url = OPTIONS['server'] + issue_path
 fields = ','.join(IssueContainer.field_mappings.values())
+
 
 @click.group()
 def cli():
     """Utilities for getting data out of JIRA"""
     pass
+
 
 @cli.group()
 def profile():
@@ -60,10 +62,12 @@ def create(username, password):
         click.secho("Success!  Config file written to: {}".format(
             utils.get_config()), fg='green')
 
+
 @profile.command()
 def delete():
     """delete login credentials"""
     click.secho('not yet implemented', fg='red')
+
 
 @cli.command()
 @click.argument('type', type=click.Choice(['dev', 'qa', 'hta']))
@@ -74,29 +78,40 @@ def delete():
 def get_data_for_sprint(type, sprint_number, output, filetype):
     """Get a snapshot of the issue status for the given sprint"""
 
+    #todo make this a function/decorator
     click.secho("Establishing connection to JIRA server...", fg='green')
     auth_tup = utils.parse_config(utils.get_config())
     gh = jira.client.GreenHopper(OPTIONS)
     jac = jira.JIRA(options=OPTIONS, basic_auth=auth_tup)
 
     sprints = gh.sprints(AMDG_BOARD_ID)
-    requested_sprint = [sprint for sprint in sprints if str(sprint_number) in sprint.name and type.upper() in sprint.name].pop()
+    requested_sprint = utils.filter_sprints(sprints, sprint_number, type)
+
+    if not requested_sprint:
+        click.secho('Could not find sprint "{} - {}". Are you sure there is data for this sprint?'.format(sprint_number, type.upper()), fg='red')
+        sys.exit(1)
+
     click.secho("Fetching data for {}".format(requested_sprint.name), fg='green')
 
     # todo:  logging/error for when request fails
-    click.secho('Processing...', fg='green')
     sprint_data = jac.search_issues('project = AMDG and sprint = {sprintId}'.format(sprintId=requested_sprint.id),
-                                   maxResults=100,
-                                   fields=fields)
+                                    maxResults=100,
+                                    fields=fields)
 
+    click.secho('Processing...', fg='green')
+    today = datetime.datetime.utcnow().date()
+    common = [
+        ('date_downloaded', str(today)),
+        ('sprint', sprint_number),
+        ('type', type)
+    ]
     data = []
     for issue in sprint_data:
         issue_data = IssueContainer(issue.raw)._asdict()
         issue_data.pop('raw')
-        issue_data['sprint'] = sprint_number
-        issue_data['type'] = type
-        data.append(issue_data)
+        data.append(OrderedDict(common + list(issue_data.items())))
 
+    #todo make this a function/decorator
     click.secho("Writing file...", fg='green')
     filename = utils.create_filename(output, filetype)
     if filetype == 'csv':

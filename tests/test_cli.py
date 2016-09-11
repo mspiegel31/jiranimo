@@ -8,7 +8,7 @@ import unittest.mock as mock
 
 @pytest.mark.skip('pending deletion')
 class TestGetSprints:
-
+q
     def test_it_should_extract_multiple_names(self):
         test_data = ['name=abc, name=qqq,']
         expected = [['abc', 'qqq']]

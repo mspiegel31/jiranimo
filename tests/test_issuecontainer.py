@@ -14,7 +14,9 @@ def mockIssue():
             'aggregatetimespent': 60**2 * 4,
             'timespent': 60**2 * 2,
             'timeestimate': 60**2 * 8,
-            'customfield_10143': 8
+            'customfield_10143': 8,
+            'workratio': 12,
+            'subtasks': [1,2,3]
         }
     }
 
