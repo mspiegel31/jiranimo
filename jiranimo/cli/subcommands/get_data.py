@@ -6,10 +6,12 @@ import warnings
 from collections import OrderedDict
 
 import click
+import jira
 from jiranimo import decorators, utils
 from jiranimo.issuecontainer import IssueContainer
 
 # configs
+# TODO move configs into YAML file so it's not hardcoded to our JIRA board...
 warnings.filterwarnings('ignore')
 AMDG_BOARD_ID = 2164
 OPTIONS = {
