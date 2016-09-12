@@ -1,23 +1,16 @@
-import base64
 import csv
 import datetime
 import json
-import os.path as path
-import os
+import sys
 import warnings
 from collections import OrderedDict
-import sys
-import keyring
 
 import click
-import jira
-
 from jiranimo import decorators, utils
 from jiranimo.issuecontainer import IssueContainer
 
-warnings.filterwarnings('ignore')
-
 # configs
+warnings.filterwarnings('ignore')
 AMDG_BOARD_ID = 2164
 OPTIONS = {
     'server': 'https://jira-ct.associatesys.local',
@@ -28,55 +21,9 @@ fields = ','.join(IssueContainer.field_mappings.values())
 
 
 @click.group()
-def cli():
-    """Utilities for getting data out of JIRA"""
-    pass
-
-
-@cli.group()
-def profile():
-    """options for managing login credentials"""
-    pass
-
-
-@cli.group()
 def get_data():
     """Get you some jira data"""
     pass
-
-@profile.command()
-@click.option('--username', prompt=True)
-@click.password_option()
-def create(username, password):
-    """encodes and serializes JIRA login credentials
-
-    passwords are stored on your system keychain
-    """
-    # todo: check for existing file and ask for overwrite
-
-    keyring.set_password('system', username, password)
-    click.secho('Credentials stored in keychain')
-    payload = {
-        'username': username,
-    }
-
-    with open(utils.get_config_path(), 'w') as f:
-        json.dump(payload, f)
-        click.secho("Success!  Config file written to: {}".format(
-            utils.get_config_path()), fg='green')
-
-
-@profile.command()
-def delete():
-    """delete login credentials"""
-    prompt = click.style('This will remove login credentials from system keychain.  Do you want to continue?', fg='red')
-    confirm = click.confirm(prompt, abort=True)
-    if confirm:
-        username = utils.parse_config(utils.get_config_path())[0]
-        keyring.delete_password('system', username)
-        os.remove(utils.get_config_path())
-        click.secho("removed config file at {}".format(utils.get_config_path()), fg='green')
-
 
 
 @get_data.command()
@@ -88,7 +35,7 @@ def delete():
 def sprint(type, sprint_number, output, filetype):
     """Get a snapshot of the issue status for the given sprint"""
 
-    #todo make this a function/decorator
+    # todo make this a function/decorator
     click.secho("Establishing connection to JIRA server...", fg='green')
     auth_tup = utils.parse_config(utils.get_config_path())
     gh = jira.client.GreenHopper(OPTIONS)
@@ -121,7 +68,7 @@ def sprint(type, sprint_number, output, filetype):
         issue_data.pop('raw')
         data.append(OrderedDict(common + list(issue_data.items())))
 
-    #todo make this a function/decorator
+    # todo make this a function/decorator
     click.secho("Writing file...", fg='green')
     filename = utils.create_filename(output, filetype)
     if filetype == 'csv':
@@ -135,6 +82,3 @@ def sprint(type, sprint_number, output, filetype):
             json.dump(data, f, indent=2)
 
     click.secho("Success!", fg='green')
-
-if __name__ == '__main__':
-    cli()

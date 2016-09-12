@@ -14,6 +14,6 @@ setup(name='jiranimo',
       ],
       entry_points='''
         [console_scripts]
-        jiranimo=jiranimo.scripts.cli:cli
+        jiranimo=jiranimo.cli.cli:cli
         ''',
       )
