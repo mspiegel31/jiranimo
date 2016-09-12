@@ -35,7 +35,7 @@ def get_data():
 def sprint(type, sprint_number, output, filetype):
     """Get a snapshot of the issue status for the given sprint"""
 
-    # todo make this a function/decorator
+    # TODO make this a function/decorator
     click.secho("Establishing connection to JIRA server...", fg='green')
     auth_tup = utils.parse_config(utils.get_config_path())
     gh = jira.client.GreenHopper(OPTIONS)
@@ -50,7 +50,7 @@ def sprint(type, sprint_number, output, filetype):
 
     click.secho("Fetching data for {}".format(requested_sprint.name), fg='green')
 
-    # todo:  logging/error for when request fails
+    # TODO:  logging/error for when request fails
     sprint_data = jac.search_issues('project = AMDG and sprint = {sprintId}'.format(sprintId=requested_sprint.id),
                                     maxResults=100,
                                     fields=fields)
@@ -68,7 +68,7 @@ def sprint(type, sprint_number, output, filetype):
         issue_data.pop('raw')
         data.append(OrderedDict(common + list(issue_data.items())))
 
-    # todo make this a function/decorator
+    # TODO make this a function/decorator
     click.secho("Writing file...", fg='green')
     filename = utils.create_filename(output, filetype)
     if filetype == 'csv':

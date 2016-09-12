@@ -17,7 +17,7 @@ def filter_sprints(sprint_list, num, type):
     return requested_sprint.pop() if requested_sprint else None
 
 def parse_config(config_file):
-    # todo:  how should this behave when decoding fails?
+    # TODO:  how should this behave when decoding fails?
     with open(config_file, 'r') as f:
         config = json.load(f)
 

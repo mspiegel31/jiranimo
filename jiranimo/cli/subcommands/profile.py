@@ -20,7 +20,7 @@ def create(username, password):
 
     passwords are stored on your system keychain
     """
-    # todo: check for existing file and ask for overwrite
+    # TODO: check for existing file and ask for overwrite
 
     keyring.set_password('system', username, password)
     click.secho('Credentials stored in keychain')
